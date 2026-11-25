@@ -1,0 +1,7 @@
+# Project-specific ignores (keep the dataset and the venv out of git)
+.venv/
+data/raw/
+data/gold/
+*.pyc
+__pycache__/
+reports/*_stdout.txt

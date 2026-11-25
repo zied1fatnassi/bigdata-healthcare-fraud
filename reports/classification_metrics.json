@@ -1,0 +1,72 @@
+{
+  "rows_train": 3787,
+  "rows_val": 811,
+  "rows_test": 812,
+  "fraud_rate": 0.0935,
+  "best_model": "LogisticRegression",
+  "metrics": {
+    "LogisticRegression": {
+      "threshold": 0.85,
+      "accuracy": 0.9347,
+      "precision": 0.642,
+      "recall": 0.6842,
+      "f1": 0.6624,
+      "roc_auc": 0.9493,
+      "pr_auc": 0.7246,
+      "confusion_matrix": [
+        [
+          707,
+          29
+        ],
+        [
+          24,
+          52
+        ]
+      ],
+      "tn_fp_fn_tp": [
+        707,
+        29,
+        24,
+        52
+      ]
+    },
+    "RandomForest": {
+      "threshold": 0.62,
+      "accuracy": 0.9384,
+      "precision": 0.7031,
+      "recall": 0.5921,
+      "f1": 0.6429,
+      "roc_auc": 0.949,
+      "pr_auc": 0.7194,
+      "confusion_matrix": [
+        [
+          717,
+          19
+        ],
+        [
+          31,
+          45
+        ]
+      ],
+      "tn_fp_fn_tp": [
+        717,
+        19,
+        31,
+        45
+      ]
+    }
+  },
+  "top_features": {
+    "max_los": 1.7641,
+    "median_reimbursed": 1.1132,
+    "reimb_per_beneficiary": 0.7705,
+    "n_outpatient": 0.7394,
+    "n_claims": 0.7123,
+    "mean_los": 0.7065,
+    "n_beneficiaries": 0.6023,
+    "total_reimbursed": 0.4447,
+    "pct_zero_reimbursed": 0.4311,
+    "max_reimbursed": 0.4187
+  },
+  "money_at_stake_total": 416396009.41
+}

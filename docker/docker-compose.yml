@@ -1,0 +1,140 @@
+# ---------------------------------------------------------------------------
+# Healthcare Provider Fraud :: Hadoop + Hive stack (single VM, 2 DataNodes)
+#
+#   namenode            HDFS master          UI http://localhost:9870
+#   datanode1/2         HDFS workers         (2 replicas -> real fault tolerance)
+#   resourcemanager     YARN master          UI http://localhost:8088
+#   nodemanager         YARN worker
+#   hive-metastore      Hive catalog (Postgres)
+#   hiveserver2         SQL endpoint         jdbc:hive2://localhost:10000
+#
+# Start:   docker compose up -d
+# Stop:    docker compose down          (keeps data)
+# Reset:   docker compose down -v       (deletes HDFS + metastore volumes)
+#
+# NOTE: port 9000 (NameNode RPC) is NOT published to the host on purpose:
+# a local service on this machine already listens on 127.0.0.1:9000, and
+# every HDFS client you need runs *inside* the Docker network.
+# ---------------------------------------------------------------------------
+name: healthfraud
+
+services:
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: namenode
+    restart: unless-stopped
+    ports:
+      - "9870:9870"   # NameNode web UI
+    volumes:
+      - namenode:/hadoop/dfs/name
+      - ../data/raw:/data/raw:ro   # raw Kaggle CSVs, read-only
+    environment:
+      - CLUSTER_NAME=healthfraud
+    env_file:
+      - ./hadoop.env
+
+  datanode1:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode1
+    restart: unless-stopped
+    volumes:
+      - datanode1:/hadoop/dfs/data
+    environment:
+      - SERVICE_PRECONDITION=namenode:9870
+    env_file:
+      - ./hadoop.env
+
+  datanode2:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode2
+    restart: unless-stopped
+    volumes:
+      - datanode2:/hadoop/dfs/data
+    environment:
+      - SERVICE_PRECONDITION=namenode:9870
+    env_file:
+      - ./hadoop.env
+
+  resourcemanager:
+    image: bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8
+    container_name: resourcemanager
+    restart: unless-stopped
+    ports:
+      - "8088:8088"   # YARN web UI
+    environment:
+      - SERVICE_PRECONDITION=namenode:9870 datanode1:9864 datanode2:9864
+    env_file:
+      - ./hadoop.env
+
+  nodemanager:
+    image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
+    container_name: nodemanager
+    restart: unless-stopped
+    environment:
+      - SERVICE_PRECONDITION=namenode:9870 datanode1:9864 datanode2:9864 resourcemanager:8088
+    env_file:
+      - ./hadoop.env
+
+  historyserver:
+    image: bde2020/hadoop-historyserver:2.0.0-hadoop3.2.1-java8
+    container_name: historyserver
+    restart: unless-stopped
+    ports:
+      - "19888:19888"
+    volumes:
+      - historyserver:/hadoop/yarn/timeline
+    environment:
+      - SERVICE_PRECONDITION=namenode:9870 datanode1:9864 datanode2:9864 resourcemanager:8088
+    env_file:
+      - ./hadoop.env
+
+  # ---------------- Hive layer ----------------
+  hive-metastore-postgresql:
+    image: bde2020/hive-metastore-postgresql:2.3.0
+    container_name: hive-metastore-postgresql
+    restart: unless-stopped
+    volumes:
+      - metastore-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hive -d metastore"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  hive-metastore:
+    image: bde2020/hive:2.3.2-postgresql-metastore
+    container_name: hive-metastore
+    restart: unless-stopped
+    command: /opt/hive/bin/hive --service metastore
+    environment:
+      - SERVICE_PRECONDITION=namenode:9870 datanode1:9864 datanode2:9864 resourcemanager:8088 hive-metastore-postgresql:5432
+    env_file:
+      - ./hadoop.env
+      - ./hive.env
+    depends_on:
+      - hive-metastore-postgresql
+
+  hiveserver2:
+    image: bde2020/hive:2.3.2-postgresql-metastore
+    container_name: hiveserver2
+    restart: unless-stopped
+    command: /opt/hive/bin/hive --service hiveserver2
+    ports:
+      - "10000:10000"   # HiveServer2 JDBC
+    volumes:
+      - ../sql:/sql:ro
+      - ../data/gold:/data/gold           # gold CSV/Parquet export target
+    environment:
+      - SERVICE_PRECONDITION=hive-metastore:9083
+    env_file:
+      - ./hadoop.env
+      - ./hive.env
+    depends_on:
+      - hive-metastore
+
+volumes:
+  namenode:
+  datanode1:
+  datanode2:
+  historyserver:
+  metastore-db:

@@ -1,0 +1,32 @@
+{
+  "medicare_inpatient": {
+    "n_claims": 40474,
+    "mean_los": 6.67,
+    "max_los": 36,
+    "validation": {
+      "mae_days": 3.139,
+      "rmse_days": 4.879,
+      "r2": 0.2414
+    },
+    "test": {
+      "mae_days": 3.214,
+      "rmse_days": 5.005,
+      "r2": 0.225
+    }
+  },
+  "microsoft_los": {
+    "n_rows": 100000,
+    "mean_los": 4.0,
+    "max_los": 17,
+    "validation": {
+      "mae_days": 0.398,
+      "rmse_days": 0.649,
+      "r2": 0.9247
+    },
+    "test": {
+      "mae_days": 0.415,
+      "rmse_days": 0.679,
+      "r2": 0.9162
+    }
+  }
+}

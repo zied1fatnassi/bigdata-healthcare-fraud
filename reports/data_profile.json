@@ -1,0 +1,22 @@
+{
+  "claims_total": 558211,
+  "claims_inpatient": 40474,
+  "claims_outpatient": 517737,
+  "reimbursed_total": 556543140.0,
+  "reimbursed_inpatient": 408297020.0,
+  "reimbursed_outpatient": 148246120.0,
+  "providers_in_claims": 5410,
+  "beneficiaries_in_claims": 138556,
+  "beneficiaries_dim": 138556,
+  "beneficiaries_without_claims": 0,
+  "states": 52,
+  "counties": 314,
+  "claims_zero_reimbursed": 20653,
+  "claims_null_provider": 0,
+  "los_mean": 6.67,
+  "los_max": 36,
+  "los_null": 0,
+  "date_min": "2008-11-27",
+  "date_max": "2009-12-31",
+  "deductible_zero_share": 0.8914
+}
